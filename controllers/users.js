@@ -21,6 +21,10 @@ module.exports.getUserById = (req, res) => {
     .then((user) => res.status(STATUS_CODE_OK).send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
+        res.status(STATUS_CODE_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные при поиске пользователя',
+        });
+      } else if (err.name === 'DocumentNotFoundError') {
         res
           .status(STATUS_CODE_NOT_FOUND)
           .send({ message: 'Пользователь по указанному id не найден' });
@@ -64,7 +68,7 @@ module.exports.updateUserProfile = (req, res) => {
         res.status(STATUS_CODE_BAD_REQUEST).send({
           message: 'Переданы некорректные данные при обновлении профиля',
         });
-      } else if (err.name === 'CastError') {
+      } else if (err.name === 'DocumentNotFoundError') {
         res
           .status(STATUS_CODE_NOT_FOUND)
           .send({ message: 'Пользователь с указанным id не найден' });
@@ -86,7 +90,7 @@ module.exports.updateUserAvatar = (req, res) => {
         res.status(STATUS_CODE_BAD_REQUEST).send({
           message: 'Переданы некорректные данные при обновлении аватара',
         });
-      } else if (err.name === 'CastError') {
+      } else if (err.name === 'DocumentNotFoundError') {
         res
           .status(STATUS_CODE_NOT_FOUND)
           .send({ message: 'Пользователь с указанным id не найден' });
