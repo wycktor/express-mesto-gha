@@ -18,16 +18,20 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .then((user) => res.status(STATUS_CODE_OK).send({ data: user }))
+    .then((user) => {
+      if (!user) {
+        res
+          .status(STATUS_CODE_NOT_FOUND)
+          .send({ message: 'Пользователь по указанному id не найден' });
+      } else {
+        res.status(STATUS_CODE_OK).send({ data: user });
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(STATUS_CODE_BAD_REQUEST).send({
           message: 'Переданы некорректные данные при поиске пользователя',
         });
-      } else if (err.name === 'DocumentNotFoundError') {
-        res
-          .status(STATUS_CODE_NOT_FOUND)
-          .send({ message: 'Пользователь по указанному id не найден' });
       } else {
         res
           .status(STATUS_CODE_SERVER_ERROR)
