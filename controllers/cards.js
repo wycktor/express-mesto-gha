@@ -1,3 +1,5 @@
+const { CastError, ValidationError } = require('mongoose').Error;
+
 const Card = require('../models/card');
 
 const {
@@ -22,7 +24,7 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(STATUS_CODE_CREATED).send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err instanceof ValidationError) {
         res.status(STATUS_CODE_BAD_REQUEST).send({
           message: 'Переданы некорректные данные при создании карточки',
         });
@@ -46,7 +48,7 @@ module.exports.deleteCard = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof CastError) {
         res.status(STATUS_CODE_BAD_REQUEST).send({
           message: 'Переданы некорректные данные при удалении карточки',
         });
@@ -74,7 +76,7 @@ module.exports.likeCard = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof CastError) {
         res.status(STATUS_CODE_BAD_REQUEST).send({
           message: 'Переданы некорректные данные для постановки лайка',
         });
@@ -102,7 +104,7 @@ module.exports.dislikeCard = (req, res) => {
       }
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err instanceof CastError) {
         res
           .status(STATUS_CODE_BAD_REQUEST)
           .send({ message: 'Переданы некорректные данные для снятия лайка' });
