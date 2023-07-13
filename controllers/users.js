@@ -1,61 +1,60 @@
 const User = require('../models/user');
 
-const { handleError } = require('../utils/errors');
-
 const {
   STATUS_CODE_OK,
   STATUS_CODE_CREATED,
-  // STATUS_CODE_BAD_REQUEST,
-  // STATUS_CODE_NOT_FOUND,
+  STATUS_CODE_BAD_REQUEST,
+  STATUS_CODE_NOT_FOUND,
   STATUS_CODE_SERVER_ERROR,
 } = require('../utils/constants');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(STATUS_CODE_OK).send({ data: users }))
-    .catch(() => res.status(STATUS_CODE_SERVER_ERROR));
+    .catch(() => res
+      .status(STATUS_CODE_SERVER_ERROR)
+      .send({ message: 'Ошибка по умолчанию' }));
 };
 
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .onFail()
-    .then((user) => res.status(STATUS_CODE_OK).send({ data: user }))
-    .catch((err) => handleError(err, res));
-
-  // .catch((err) => {
-  //   if (err.name === 'CastError') {
-  //     res.status(STATUS_CODE_BAD_REQUEST).send({
-  //       message: 'Переданы некорректные данные при поиске пользователя',
-  //     });
-  //   } else if (err.message === 'NotValid') {
-  //     res
-  //       .status(STATUS_CODE_NOT_FOUND)
-  //       .send({ message: 'Пользователь по указанному id не найден' });
-  //   } else {
-  //     res
-  //       .status(STATUS_CODE_SERVER_ERROR)
-  //       .send({ message: 'Ошибка по умолчанию' });
-  //   }
-  // });
+    .then((user) => {
+      if (!user) {
+        res
+          .status(STATUS_CODE_NOT_FOUND)
+          .send({ message: 'Пользователь по указанному id не найден' });
+      } else {
+        res.status(STATUS_CODE_OK).send({ data: user });
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(STATUS_CODE_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные при поиске пользователя',
+        });
+      } else {
+        res
+          .status(STATUS_CODE_SERVER_ERROR)
+          .send({ message: 'Ошибка по умолчанию' });
+      }
+    });
 };
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => res.status(STATUS_CODE_CREATED).send({ data: user }))
-    .catch((err) => handleError(err, res));
-
-  // .catch((err) => {
-  //   if (err.name === 'ValidationError') {
-  //     res.status(STATUS_CODE_BAD_REQUEST).send({
-  //       message: 'Переданы некорректные данные при создании пользователя',
-  //     });
-  //   } else {
-  //     res
-  //       .status(STATUS_CODE_SERVER_ERROR)
-  //       .send({ message: 'Ошибка по умолчанию' });
-  //   }
-  // });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(STATUS_CODE_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные при создании пользователя',
+        });
+      } else {
+        res
+          .status(STATUS_CODE_SERVER_ERROR)
+          .send({ message: 'Ошибка по умолчанию' });
+      }
+    });
 };
 
 module.exports.updateUserProfile = (req, res) => {
@@ -67,50 +66,44 @@ module.exports.updateUserProfile = (req, res) => {
     { name, about },
     { new: true, runValidators: true },
   )
-    .onFail()
     .then((user) => res.status(STATUS_CODE_OK).send({ data: user }))
-    .catch((err) => handleError(err, res));
-
-  // .catch((err) => {
-  //   if (err.name === 'ValidationError') {
-  //     res.status(STATUS_CODE_BAD_REQUEST).send({
-  //       message: 'Переданы некорректные данные при обновлении профиля',
-  //     });
-  //   } else if (err.name === 'DocumentNotFoundError') {
-  //     res
-  //       .status(STATUS_CODE_NOT_FOUND)
-  //       .send({ message: 'Пользователь с указанным id не найден' });
-  //   } else {
-  //     res
-  //       .status(STATUS_CODE_SERVER_ERROR)
-  //       .send({ message: 'Ошибка по умолчанию' });
-  //   }
-  // });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(STATUS_CODE_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные при обновлении профиля',
+        });
+      } else if (err.name === 'DocumentNotFoundError') {
+        res
+          .status(STATUS_CODE_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным id не найден' });
+      } else {
+        res
+          .status(STATUS_CODE_SERVER_ERROR)
+          .send({ message: 'Ошибка по умолчанию' });
+      }
+    });
 };
 
 module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
   const userId = req.user._id;
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
-    .onFail()
     .then((user) => res.status(STATUS_CODE_OK).send({ data: user }))
-    .catch((err) => handleError(err, res));
-
-  // .catch((err) => {
-  //   if (err.name === 'ValidationError') {
-  //     res.status(STATUS_CODE_BAD_REQUEST).send({
-  //       message: 'Переданы некорректные данные при обновлении аватара',
-  //     });
-  //   } else if (err.name === 'DocumentNotFoundError') {
-  //     res
-  //       .status(STATUS_CODE_NOT_FOUND)
-  //       .send({ message: 'Пользователь с указанным id не найден' });
-  //   } else {
-  //     res
-  //       .status(STATUS_CODE_SERVER_ERROR)
-  //       .send({ message: 'Ошибка по умолчанию' });
-  //   }
-  // });
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(STATUS_CODE_BAD_REQUEST).send({
+          message: 'Переданы некорректные данные при обновлении аватара',
+        });
+      } else if (err.name === 'DocumentNotFoundError') {
+        res
+          .status(STATUS_CODE_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным id не найден' });
+      } else {
+        res
+          .status(STATUS_CODE_SERVER_ERROR)
+          .send({ message: 'Ошибка по умолчанию' });
+      }
+    });
 };
 
 /*
