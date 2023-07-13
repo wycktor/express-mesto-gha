@@ -1,6 +1,6 @@
 const User = require('../models/user');
 
-const handleError = require('../utils/errors');
+const { handleError } = require('../utils/errors');
 
 const {
   STATUS_CODE_OK,
