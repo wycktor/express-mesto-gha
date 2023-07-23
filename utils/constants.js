@@ -7,7 +7,7 @@ const STATUS_CODE_NOT_FOUND = 404;
 const STATUS_CODE_CONFLICT = 409;
 const STATUS_CODE_SERVER_ERROR = 500;
 
-const regexLink = /(?:https?):\/\/(w{3}\.)?\w+([.|-]{1}\w+)*\.[0-9a-zA-Z-]+(\/[\w\-.~:/?#[\]@!$&'()*+,;=]*#?)?/;
+const regexLink = /(?:https?):\/\/(w{3}\.)?\w+([.|-]{1,}\w+)*\.[0-9a-zA-Z-]+(\/[\w\-.~:/?#[\]@!$&'()*+,;=]*#?)?/;
 
 module.exports = {
   STATUS_CODE_OK,

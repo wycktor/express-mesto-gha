@@ -117,12 +117,14 @@ module.exports.updateUserAvatar = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
+
   User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'secret-key', {
         expiresIn: '7d',
       });
-      res.status(STATUS_CODE_OK).send({ _id: token });
+
+      res.status(STATUS_CODE_OK).send({ token });
     })
     .catch(next);
 };
