@@ -2,14 +2,14 @@ const { celebrate, Joi } = require('celebrate');
 
 const { regexLink } = require('../utils/constants');
 
-const loginValidation = celebrate({
+module.exports.loginValidation = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required().min(4),
   }),
 });
 
-const userValidation = celebrate({
+module.exports.userValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
@@ -19,44 +19,34 @@ const userValidation = celebrate({
   }),
 });
 
-const userByIdValidation = celebrate({
+module.exports.userByIdValidation = celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().required().hex().length(24),
+    userId: Joi.string().hex().length(24).required(),
   }),
 });
 
-const userProfileValidation = celebrate({
+module.exports.userProfileValidation = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().min(2).max(30).required(),
-    about: Joi.string().min(2).max(30).required(),
+    name: Joi.string().required().min(2).max(30),
+    about: Joi.string().required().min(2).max(30),
   }),
 });
 
-const userAvatarValidation = celebrate({
+module.exports.userAvatarValidation = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().regex(new RegExp(regexLink)).required(),
+    avatar: Joi.string().required().regex(new RegExp(regexLink)),
   }),
 });
 
-const cardValidation = celebrate({
+module.exports.cardValidation = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     link: Joi.string().required().regex(new RegExp(regexLink)),
   }),
 });
 
-const cardByIdValidation = celebrate({
+module.exports.cardByIdValidation = celebrate({
   params: Joi.object().keys({
-    cardId: Joi.string().required().hex().length(24),
+    cardId: Joi.string().hex().length(24).required(),
   }),
 });
-
-module.exports = {
-  loginValidation,
-  userValidation,
-  userByIdValidation,
-  userProfileValidation,
-  userAvatarValidation,
-  cardValidation,
-  cardByIdValidation,
-};

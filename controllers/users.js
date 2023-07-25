@@ -9,7 +9,6 @@ const { STATUS_CODE_OK, STATUS_CODE_CREATED } = require('../utils/constants');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 const NotFoundError = require('../errors/NotFoundError');
-const UnauthorizedError = require('../errors/UnauthorizedError');
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
@@ -21,18 +20,17 @@ module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        return next(
-          new NotFoundError('Пользователь по указанному _id не найден'),
-        );
+        next(new NotFoundError('Пользователь по указанному _id не найден'));
+      } else {
+        res.status(STATUS_CODE_OK).send({ data: user });
       }
-      return res.status(STATUS_CODE_OK).send({ data: user });
     })
     .catch((err) => {
       if (err instanceof CastError) {
-        return next(new BadRequestError('Введены некорректные данные поиска'));
+        next(new BadRequestError('Введены некорректные данные поиска'));
+      } else {
+        next(err);
       }
-
-      return next(err);
     });
 };
 
@@ -40,12 +38,18 @@ module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        return next(new NotFoundError('Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
+      } else {
+        res.status(STATUS_CODE_OK).send({ data: user });
       }
-
-      return res.status(STATUS_CODE_OK).send({ data: user });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err instanceof CastError) {
+        next(new BadRequestError('Введены некорректные данные поиска'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -70,16 +74,12 @@ module.exports.createUser = (req, res, next) => {
     }))
     .catch((err) => {
       if (err instanceof ValidationError) {
-        return next(new BadRequestError('Введены некорректные данные'));
+        next(new BadRequestError('Введены некорректные данные'));
+      } else if (err.code === 11000) {
+        next(new ConflictError('Пользователь с таким email уже существует'));
+      } else {
+        next(err);
       }
-
-      if (err.code === 11000) {
-        return next(
-          new ConflictError('Пользователь с таким email уже существует'),
-        );
-      }
-
-      return next(err);
     });
 };
 
@@ -87,21 +87,21 @@ const updateUserInfo = (data, req, res, next) => {
   User.findByIdAndUpdate(req.user._id, data, { new: true, runValidators: true })
     .then((newData) => {
       if (!newData) {
-        return next(new NotFoundError('Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
+      } else {
+        res.status(STATUS_CODE_OK).send({ data: newData });
       }
-
-      return res.status(STATUS_CODE_OK).send({ data: newData });
     })
     .catch((err) => {
       if (err instanceof ValidationError) {
-        return next(
+        next(
           new BadRequestError(
             'Переданы некорректные данные при обновлении данных пользователя',
           ),
         );
+      } else {
+        next(err);
       }
-
-      return next(err);
     });
 };
 
@@ -120,21 +120,11 @@ module.exports.login = (req, res, next) => {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return next(new UnauthorizedError('Неверные email и/или пароль'));
-      }
-
-      return bcrypt.compare(password, user.password).then((matched) => {
-        if (!matched) {
-          return next(new UnauthorizedError('Неверные email и/или пароль'));
-        }
-
-        const token = jwt.sign({ _id: user._id }, 'secret-key', {
-          expiresIn: '7d',
-        });
-
-        return res.status(STATUS_CODE_OK).send({ token });
+      const token = jwt.sign({ _id: user._id }, 'secret-key', {
+        expiresIn: '7d',
       });
+
+      res.status(STATUS_CODE_OK).send({ token });
     })
     .catch(next);
 };
